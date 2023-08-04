@@ -20,8 +20,7 @@ port           = 4848
 
 # MySQL
 db.target      = mysql
-db.driver      = com.mysql.jdbc.jdbc2.optional.MysqlDataSource
-!db.driver      = mysql-connector-java-5.1.30-bin.jar_com.mysql.jdbc.Driver_5_1
+db.driver      = com.mysql.cj.jdbc.MysqlDataSource
 db.url         = jdbc:mysql://localhost:3306/authn_db
 db.username    = icat
 db.password    = secret
