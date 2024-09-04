@@ -122,6 +122,10 @@ public class DB_Authenticator {
 
 		if (addressChecker != null) {
 			try {
+				if (ip==null) {
+					throw new AuthnException(HttpURLConnection.HTTP_BAD_REQUEST,
+							"An Ip address must be provided");
+				}
 				if (!addressChecker.check(ip)) {
 					throw new AuthnException(HttpURLConnection.HTTP_FORBIDDEN,
 							"authn_db does not allow log in from your IP address " + ip);
