@@ -1,0 +1,58 @@
+package org.icatproject.authn_db;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.File;
+
+@QuarkusTest
+public class TestGetVersion {
+
+    @Inject
+    DB_Authenticator authn;
+
+    @Test
+    public void testVersion() throws Exception {
+        // Get the version from the pom file
+        String expectedVersion = getVersionFromPom();
+
+        // Set the projectVersion field to simulate injection (if needed)
+        authn.projectVersion = expectedVersion;
+
+        // Call the getVersion method
+        String versionResponse = authn.getVersion();
+
+        // Parse the JSON response
+        JsonObject versionJson;
+        try (JsonReader jsonReader = Json.createReader(new java.io.StringReader(versionResponse))) {
+            versionJson = jsonReader.readObject();
+        }
+
+        // Extract the version from the JSON object
+        String actualVersion = versionJson.getString("version");
+
+        // Assert that the version matches the expected version from the pom.xml
+        assertEquals(expectedVersion, actualVersion);
+    }
+
+    // Helper method to load the version from the pom.xml
+    private String getVersionFromPom() throws Exception {
+        File pomFile = new File("pom.xml");
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(pomFile);
+        doc.getDocumentElement().normalize();
+        Element versionElement = (Element) doc.getElementsByTagName("version").item(0);
+        return versionElement.getTextContent();
+    }
+}
