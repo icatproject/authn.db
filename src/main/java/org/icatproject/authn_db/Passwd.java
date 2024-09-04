@@ -1,24 +1,22 @@
 package org.icatproject.authn_db;
 
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-
-@SuppressWarnings("serial")
 @Entity
+@Table(name="PASSWD")
 public class Passwd implements Serializable {
 
-	@Id
-	private String userName;
+    @Id
+    @Column(name="USERNAME")
+    private String userName;
 
-	private String encodedPassword;
+    @Column(name="ENCODEDPASSWORD")
+    private String encodedPassword;
 
-	// Needed by JPA
-	public Passwd() {
-	}
-
-	public String getEncodedPassword() {
-		return encodedPassword;
-	}
+    // Getter for encodedPassword
+    public String getEncodedPassword() {
+        return encodedPassword;
+    }
 }

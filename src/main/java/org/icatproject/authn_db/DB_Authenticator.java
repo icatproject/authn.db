@@ -1,73 +1,63 @@
 package org.icatproject.authn_db;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.HttpURLConnection;
-
 import jakarta.annotation.PostConstruct;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 import jakarta.json.JsonValue;
 import jakarta.json.stream.JsonGenerator;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.FormParam;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.icatproject.authentication.AuthnException;
 import org.icatproject.authentication.PasswordChecker;
 import org.icatproject.utils.AddressChecker;
 import org.icatproject.utils.AddressCheckerException;
-import org.icatproject.utils.CheckedProperties;
-import org.icatproject.utils.CheckedProperties.CheckedPropertyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
+import org.jboss.logging.Logger;
 
-@Path("/")
-@Stateless
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.net.HttpURLConnection;
+import java.util.Optional;
+
+@Path("/authn.db")
+@ApplicationScoped
 public class DB_Authenticator {
 
-	@PersistenceContext(unitName = "db_authn")
-	private EntityManager manager;
+	@Inject
+	EntityManager manager;
 
-	private AddressChecker addressChecker;
+	AddressChecker addressChecker;
 
-	private String mechanism;
+	@Inject
+	@ConfigProperty(name = "quarkus.application.version")
+	String projectVersion;
 
-	private static final Logger logger = LoggerFactory.getLogger(DB_Authenticator.class);
-	private static final Marker fatal = MarkerFactory.getMarker("FATAL");
+	@Inject
+	@ConfigProperty(name = "mechanism", defaultValue = "db")
+	String mechanism;
+
+	@Inject
+	@ConfigProperty(name = "ip")
+	Optional<String> ipAddresses;
+
+	private static final Logger logger = Logger.getLogger(DB_Authenticator.class);
 
 	@PostConstruct
 	void init() {
-		logger.info("Initialising DB_Authenticator");
-		CheckedProperties props = new CheckedProperties();
-		try {
-			props.loadFromResource("run.properties");
-			if (props.has("ip")) {
-				try {
-					addressChecker = new AddressChecker(props.getString("ip"));
-				} catch (Exception e) {
-					String msg = "Problem creating AddressChecker with information from run.properties "
-							+ e.getMessage();
-
-					logger.error(fatal, msg);
-					throw new IllegalStateException(msg);
-				}
+		ipAddresses.ifPresentOrElse(ip -> {
+			try {
+				logger.info("Initialising AddressChecker with IP: " + ip);
+				// If ipAddresses is present, create an AddressChecker
+				addressChecker = new AddressChecker(ip);
+			} catch (Exception e) {
+				logger.error("Problem creating AddressChecker with IP: " + ip, e);
+				throw new IllegalStateException("Invalid IP configuration", e);
 			}
-			mechanism = props.getString("mechanism", null);
-		} catch (CheckedPropertyException e) {
-			logger.error(fatal, e.getMessage());
-			throw new IllegalStateException(e.getMessage());
-		}
+		}, () -> logger.info("No IP configured, AddressChecker will not be initialized."));
 
 		logger.info("Initialised DB_Authenticator");
 	}
@@ -76,11 +66,10 @@ public class DB_Authenticator {
 	@Path("version")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getVersion() {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		JsonGenerator gen = Json.createGenerator(baos);
-		gen.writeStartObject().write("version", Constants.API_VERSION).writeEnd();
-		gen.close();
-		return baos.toString();
+		JsonObject versionJson = Json.createObjectBuilder()
+				.add("version", projectVersion)
+				.build();
+		return versionJson.toString();
 	}
 
 	@POST
