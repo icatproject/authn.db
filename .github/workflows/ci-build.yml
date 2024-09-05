@@ -22,13 +22,17 @@ jobs:
           java-version: '22'
 
       - name: Set up Docker Compose
-        run: docker compose up -d 
+        run: docker compose up -d
 
-      - name: Wait for MariaDB to be ready
+      - name: Wait for user1 in PASSWORD table
         run: |
-          echo "Waiting for MariaDB to be ready..."
-          until docker compose exec icat_mariadb mysqladmin ping -h 127.0.0.1 --silent; do sleep 5; done
+          echo "Waiting for MariaDB to be ready and for user1 in the PASSWORD table..."
+          until docker-compose exec icat_mariadb mysql -u root -ppw -D authn_db -e "SELECT 1 FROM PASSWD WHERE username='user1'" >/dev/null 2>&1; do
+            echo "Waiting for MariaDB and user1..."
+            sleep 5
+          done
         shell: bash
+
 
       - name: Build project and run unit tests
         run: ./mvnw clean package -DskipTests
