@@ -20,15 +20,16 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '22'
+
       - name: Set up Docker Compose
-        run: docker-compose up -d  # Start Docker Compose services
+        run: docker compose up -d 
 
       - name: Wait for MariaDB to be ready
         run: |
           echo "Waiting for MariaDB to be ready..."
-          until docker-compose exec icat_mariadb mysqladmin ping -h 127.0.0.1 --silent; do sleep 5; done
+          until docker compose exec icat_mariadb mysqladmin ping -h 127.0.0.1 --silent; do sleep 5; done
         shell: bash
-        
+
       - name: Build project and run unit tests
         run: ./mvnw clean package -DskipTests
 
