@@ -1,96 +1,46 @@
 name: CI Build
+
 on:
   workflow_dispatch:
   pull_request:
   push:
     branches:
       - master
+      - quarkus_auth_simple
 
 jobs:
-  build_and_tests:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        java: [ '11', '17' ]
+  Build:
+    runs-on: ubuntu-latest
     steps:
-      # Setup Java
-      - name: Setup Java
-        uses: actions/setup-java@cd89f46ac9d01407894225f350157564c9c7cee2 # v3.12.0
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          java-version: '22'
 
-      - name: Cache local Maven repository
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+      - name: Build project and run unit tests
+        run: ./mvnw clean package -DskipTests
+
+      - name: Run integration tests
+        run: ./mvnw failsafe:integration-test
+
+      - name: Build native executable and run tests
+        run: ./mvnw package -DskipTests -Dnative -Dquarkus.native.container-build=true
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+          registry: ${{ secrets.HARBOR_URL }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
 
-      # ICAT Ansible clone and install dependencies
-      - name: Checkout icat-ansible
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
-          repository: icatproject-contrib/icat-ansible
-          path: icat-ansible
-          ref: payara6
-      - name: Install Ansible
-        run: pip install -r icat-ansible/requirements.txt
-
-      # Prep for running the playbook
-      - name: Create Hosts File
-        run: echo -e "[icatdb_minimal_hosts]\nlocalhost ansible_connection=local" > icat-ansible/hosts
-      - name: Prepare vault pass
-        run: echo -e "icattravispw" > icat-ansible/vault_pass.txt
-      - name: Move vault to directory it'll get detected by Ansible
-        run: mv icat-ansible/vault.yml icat-ansible/group_vars/all
-      - name: Replace default payara user with Actions user
-        run: |
-          sed -i -e "s/^payara_user: \"glassfish\"/payara_user: \"runner\"/" icat-ansible/group_vars/all/vars.yml
-      - name: Add Ansible Roles
-        run: |
-          sed -i "/- role: authn_anon$/a\
-          \    - role: authn_db" icat-ansible/icatdb_minimal_hosts.yml
-          sed -i "/- role: icat_server$/a\
-          \    - role: dev_common" icat-ansible/icatdb_minimal_hosts.yml
-
-      # Force hostname to localhost - bug fix for previous ICAT Ansible issues on Actions
-      - name: Change hostname to localhost
-        run: sudo hostname -b localhost
-
-      # Remove existing MySQL installation so it doesn't interfere with GitHub Actions
-      - name: Remove existing mysql
-        run: |
-          sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.mysqld
-          sudo apt-get remove --purge "mysql*"
-          sudo rm -rf /var/lib/mysql* /etc/mysql
-
-      # Create local instance of ICAT
-      - name: Run ICAT Ansible Playbook
-        run: |
-          sudo apt-get update
-          ansible-playbook icat-ansible/icatdb_minimal_hosts.yml -i icat-ansible/hosts --vault-password-file icat-ansible/vault_pass.txt -vv
-
-      # The authn-db deployed by ansible needs to be undeployed so that the build can run
-      - name: Undeploy authn-db
-        run: |
-          cd /home/runner/payara*/glassfish*/bin
-          PATH=$PATH:`pwd`
-          asadmin undeploy `asadmin list-applications | grep authn.db | awk '{print $1;}'`
-
-      - name: Checkout authn-db
-        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-
-      # Payara must be sourced otherwise the Maven build command fails
-      - name: Run Build
-        run: |
-          grep payara ~/.bash_profile > payara_path_command
-          source payara_path_command
-          mvn install -DskipTests
-
-      - name: Run Unit Tests
-        run: mvn test -B
-
-      - name: Run Integration Tests
-        run: mvn failsafe:integration-test failsafe:verify -B
+          push: true
+          context: .
+          file: src/main/docker/Dockerfile.native
+          tags: ${{ secrets.HARBOR_URL }}/authn_simple:${{ github.ref_name }}
