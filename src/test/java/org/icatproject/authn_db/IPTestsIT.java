@@ -33,12 +33,12 @@ public class IPTestsIT {
 
 		// Perform an HTTP POST request with a bad IP address
 		given()
-				.header("Content-Type", "application/x-www-form-urlencoded")  // Set Content-Type for form-urlencoded
-				.formParam("json", jsonString)  // Send the JSON string as a form parameter with the key 'json'
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.formParam("json", jsonString)
 				.when()
 				.post("/authn.db/authenticate")
 				.then()
-				.statusCode(Response.Status.FORBIDDEN.getStatusCode())  // Expect 403 Forbidden
+				.statusCode(Response.Status.FORBIDDEN.getStatusCode())
 				.body("message", equalTo("authn_db does not allow log in from your IP address 192.167.0.125"));
 	}
 
@@ -48,14 +48,14 @@ public class IPTestsIT {
 
 		// Perform an HTTP POST request with a valid IP address
 		given()
-				.header("Content-Type", "application/x-www-form-urlencoded")  // Set Content-Type for form-urlencoded
-				.formParam("json", jsonString)  // Send the JSON string as a form parameter with the key 'json'
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.formParam("json", jsonString)
 				.when()
 				.post("/authn.db/authenticate")
 				.then()
-				.statusCode(Response.Status.OK.getStatusCode())  // Expect 200 OK
+				.statusCode(Response.Status.OK.getStatusCode())
 				.body("username", equalTo("user1"))
-				.body("mechanism", equalTo("db"));  // Adjust this based on your actual mechanism
+				.body("mechanism", equalTo("db"));
 	}
 
 }

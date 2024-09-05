@@ -21,9 +21,9 @@ public class AuthenticateIT {
 				.when()
 				.post("/authn.db/authenticate")
 				.then()
-				.statusCode(Response.Status.OK.getStatusCode())  // Expect a 200 OK status
-				.body("username", equalTo("user1"))  // Validate the response body
-				.body("mechanism", equalTo("db"));  // Validate the response body
+				.statusCode(Response.Status.OK.getStatusCode())
+				.body("username", equalTo("user1"))
+				.body("mechanism", equalTo("db"));
 	}
 	@Test
 	public void testInvalidUsername() {
@@ -34,9 +34,9 @@ public class AuthenticateIT {
 				.header("Content-Type", "application/x-www-form-urlencoded")  // Set Content-Type for form-urlencoded
 				.formParam("json", jsonString)  // Send the JSON string as a form parameter with the key 'json'
 				.when()
-				.post("/authn.db/authenticate")  // Ensure the path is correct
+				.post("/authn.db/authenticate")
 				.then()
-				.statusCode(Response.Status.FORBIDDEN.getStatusCode())  // Expect 403 Forbidden
+				.statusCode(Response.Status.FORBIDDEN.getStatusCode())
 				.body("message", equalTo("The username and password do not match"));
 	}
 	@Test
@@ -45,12 +45,12 @@ public class AuthenticateIT {
 
 		// Perform an HTTP POST with invalid password, sending the JSON as a form parameter
 		given()
-				.header("Content-Type", "application/x-www-form-urlencoded")  // Set Content-Type for form-urlencoded
-				.formParam("json", jsonString)  // Send the JSON string as a form parameter with the key 'json'
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.formParam("json", jsonString)
 				.when()
-				.post("/authn.db/authenticate")  // Ensure the path is correct
+				.post("/authn.db/authenticate")
 				.then()
-				.statusCode(Response.Status.FORBIDDEN.getStatusCode())  // Expect 403 Forbidden
+				.statusCode(Response.Status.FORBIDDEN.getStatusCode())
 				.body("message", equalTo("The username and password do not match"));
 	}
 }
