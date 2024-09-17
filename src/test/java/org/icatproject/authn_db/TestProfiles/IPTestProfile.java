@@ -1,4 +1,4 @@
-package org.icatproject.authn_db;
+package org.icatproject.authn_db.TestProfiles;
 
 import io.quarkus.test.junit.QuarkusTestProfile;
 
