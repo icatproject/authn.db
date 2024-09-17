@@ -14,6 +14,7 @@ import org.jboss.logging.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
+import java.util.Optional;
 
 @Path("/authn.db")
 @ApplicationScoped
@@ -29,8 +30,8 @@ public class DB_Authenticator {
 	String projectVersion;
 
 	@Inject
-	@ConfigProperty(name = "mechanism", defaultValue = "db")
-	String mechanism;
+	@ConfigProperty(name = "mechanism")
+	Optional<String> mechanism;
 
 	@Inject
 	IPVerifier ipVerifier;
@@ -61,6 +62,7 @@ public class DB_Authenticator {
 		logger.debug("Login request by: " + request.getUsername());
 		logger.debug("Checking password against database");
 
+		// init the entity manager and check passwords
 		Passwd passwd = this.manager.find(Passwd.class, request.getUsername());
 		if (passwd == null) {
 			throw new AuthnException(HttpURLConnection.HTTP_FORBIDDEN, "The username and password do not match");
@@ -68,14 +70,12 @@ public class DB_Authenticator {
 			passwd.checkPasswords(request.getPassword(), passwd.getPassword());
 		}
 
-		logger.info(request.getUsername() + " logged in succesfully" + (mechanism != null ? " by " + mechanism : ""));
+		logger.info(request.getUsername() + " logged in successfully" + (mechanism.isPresent() ? " by " + mechanism : ""));
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try (JsonGenerator gen = Json.createGenerator(baos)) {
 			gen.writeStartObject().write("username", request.getUsername());
-			if (mechanism != null) {
-				gen.write("mechanism", mechanism);
-			}
+            mechanism.ifPresent(stream -> gen.write("mechanism", stream));
 			gen.writeEnd();
 		}
 		return baos.toString();
