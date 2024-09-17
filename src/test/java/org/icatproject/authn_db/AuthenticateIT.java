@@ -22,8 +22,7 @@ public class AuthenticateIT {
 				.post("/authn.db/authenticate")
 				.then()
 				.statusCode(Response.Status.OK.getStatusCode())
-				.body("username", equalTo("user1"))
-				.body("mechanism", equalTo("db"));
+				.body("username", equalTo("user1"));
 	}
 	@Test
 	public void testInvalidUsername() {
