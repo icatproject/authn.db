@@ -12,4 +12,4 @@ services:
       MARIADB_PASSWORD: admin
     # put some test data in the db
     volumes:
-      - ./src/main/resources/import.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./src/test/db_config/import.sql:/docker-entrypoint-initdb.d/init.sql
