@@ -17,7 +17,7 @@
         <surefire-plugin.version>3.3.1</surefire-plugin.version>
         <project.scm.id>github</project.scm.id>
         <repoUrl>https://repo.icatproject.org/repo</repoUrl>
-        <gitUrl>https://github.com/icatproject/authn.simple</gitUrl>
+        <gitUrl>https://github.com/icatproject/authn.db</gitUrl>
     </properties>
 
     <dependencyManagement>
@@ -47,7 +47,7 @@
     </scm>
 
     <issueManagement>
-        <url>https://github.com/icatproject/authn.simple/issues</url>
+        <url>https://github.com/icatproject/authn.db/issues</url>
         <system>GitHub</system>
     </issueManagement>
 
@@ -67,7 +67,7 @@
         <downloadUrl>${repoUrl}</downloadUrl>
         <site>
             <id>repo.icatproject.org</id>
-            <url>dav:${repoUrl}/../site/authn/simple/${project.version}</url>
+            <url>dav:${repoUrl}/../site/authn/db/${project.version}</url>
         </site>
         <repository>
             <id>repo.icatproject.org</id>
