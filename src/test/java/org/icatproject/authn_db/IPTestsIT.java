@@ -3,6 +3,7 @@ package org.icatproject.authn_db;
 import io.quarkus.test.junit.QuarkusIntegrationTest;
 import io.quarkus.test.junit.TestProfile;
 import jakarta.ws.rs.core.Response;
+import org.icatproject.authn_db.TestProfiles.IPTestProfile;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -18,15 +19,14 @@ public class IPTestsIT {
 
 		// Perform an HTTP POST request without IP in the request body
 		given()
-				.header("Content-Type", "application/x-www-form-urlencoded")  // Set Content-Type for form-urlencoded
-				.formParam("json", jsonString)  // Send the JSON string as a form parameter with the key 'json'
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.formParam("json", jsonString)
 				.when()
 				.post("/authn.db/authenticate")
 				.then()
 				.statusCode(Response.Status.BAD_REQUEST.getStatusCode())  // Expect 400 Bad Request
-				.body("message", equalTo("An Ip address must be provided"));
+				.body("message", equalTo("An IP address must be provided"));
 	}
-
 	@Test
 	public void badIpInRequest() {
 		String jsonString = "{\"credentials\":[{\"username\":\"user1\"},{\"password\":\"sunshine\"}], \"ip\":\"192.167.0.125\"}";
@@ -38,10 +38,9 @@ public class IPTestsIT {
 				.when()
 				.post("/authn.db/authenticate")
 				.then()
-				.statusCode(Response.Status.FORBIDDEN.getStatusCode())
+				.statusCode(Response.Status.FORBIDDEN.getStatusCode()) // Expect 404
 				.body("message", equalTo("authn_db does not allow log in from your IP address 192.167.0.125"));
 	}
-
 	@Test
 	public void goodIpInRequest() {
 		String jsonString = "{\"credentials\":[{\"username\":\"user1\"},{\"password\":\"sunshine\"}], \"ip\":\"192.168.0.125\"}";

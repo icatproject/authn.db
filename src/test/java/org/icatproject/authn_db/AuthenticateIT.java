@@ -12,7 +12,7 @@ public class AuthenticateIT {
 
 	@Test
 	public void testValidLoginUser() {
-		// JSON string to be sent as form data
+		// Standard valid login with no issues
 		String jsonString = "{\"credentials\":[{\"username\":\"user1\"},{\"password\":\"sunshine\"}]}";
 
 		given()
@@ -29,10 +29,10 @@ public class AuthenticateIT {
 	public void testInvalidUsername() {
 		String jsonString = "{\"credentials\":[{\"username\":\"invaliduser\"},{\"password\":\"sunshine\"}]}";
 
-		// Perform an HTTP POST with invalid username, sending the JSON as a form parameter
+		// Perform an HTTP POST with invalid username
 		given()
-				.header("Content-Type", "application/x-www-form-urlencoded")  // Set Content-Type for form-urlencoded
-				.formParam("json", jsonString)  // Send the JSON string as a form parameter with the key 'json'
+				.header("Content-Type", "application/x-www-form-urlencoded")
+				.formParam("json", jsonString)
 				.when()
 				.post("/authn.db/authenticate")
 				.then()
@@ -43,7 +43,7 @@ public class AuthenticateIT {
 	public void testInvalidPassword() {
 		String jsonString = "{\"credentials\":[{\"username\":\"user1\"},{\"password\":\"trainspotting\"}]}";
 
-		// Perform an HTTP POST with invalid password, sending the JSON as a form parameter
+		// Perform an HTTP POST with invalid password
 		given()
 				.header("Content-Type", "application/x-www-form-urlencoded")
 				.formParam("json", jsonString)
