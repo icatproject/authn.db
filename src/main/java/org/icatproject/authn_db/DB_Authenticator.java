@@ -52,7 +52,7 @@ public class DB_Authenticator {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String authenticate(@FormParam("json") String jsonString) throws AuthnException {
 
-		// Extract the token and IP from the JSON input and store them in the class
+		// Extract the username/password and IP from the JSON input and store them in the class
 		Request request = new Request();
 		request.getCredentials(jsonString);
 
@@ -72,13 +72,13 @@ public class DB_Authenticator {
 
 		logger.info(request.getUsername() + " logged in successfully" + (mechanism.isPresent() ? " by " + mechanism : ""));
 
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try (JsonGenerator gen = Json.createGenerator(baos)) {
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try (JsonGenerator gen = Json.createGenerator(output)) {
 			gen.writeStartObject().write("username", request.getUsername());
             mechanism.ifPresent(stream -> gen.write("mechanism", stream));
 			gen.writeEnd();
 		}
-		return baos.toString();
+		return output.toString();
 	}
 
 	@GET
