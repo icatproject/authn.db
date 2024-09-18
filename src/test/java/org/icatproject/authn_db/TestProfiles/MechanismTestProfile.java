@@ -8,7 +8,7 @@ public class MechanismTestProfile implements QuarkusTestProfile {
 	@Override
 	public Map<String, String> getConfigOverrides() {
 		return Map.of(
-				"mechanism", "someValue" // Override config property and add ips
+				"mechanism", "someValue"
 		);
 	}
 }

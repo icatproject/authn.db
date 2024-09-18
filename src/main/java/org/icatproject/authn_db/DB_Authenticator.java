@@ -62,7 +62,7 @@ public class DB_Authenticator {
 		logger.debug("Login request by: " + request.getUsername());
 		logger.debug("Checking password against database");
 
-		// init the entity manager and check passwords
+		// Check passwords
 		Passwd passwd = this.manager.find(Passwd.class, request.getUsername());
 		if (passwd == null) {
 			throw new AuthnException(HttpURLConnection.HTTP_FORBIDDEN, "The username and password do not match");
@@ -72,6 +72,7 @@ public class DB_Authenticator {
 
 		logger.info(request.getUsername() + " logged in successfully" + (mechanism.isPresent() ? " by " + mechanism : ""));
 
+		// Format the response
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try (JsonGenerator gen = Json.createGenerator(output)) {
 			gen.writeStartObject().write("username", request.getUsername());
