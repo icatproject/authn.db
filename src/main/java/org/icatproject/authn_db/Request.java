@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 
 /**
  * The {@code Request} class is responsible for extracting credentials from a
- * JSON string, including a token and an optional IP address.
+ * given JSON string, including a token and an optional IP address.
  * <p>
  * This class provides methods to retrieve the extracted token and IP address,
  * and checks that the token is not null or empty.
@@ -42,8 +42,8 @@ public class Request {
         return this.ips;
     }
 
-    /** Method that pulls credentials out of json string */
-    public void getCredentials(String jsonString) throws AuthnException {
+    /** Method that pulls credentials out of the json string */
+    public void parse(String jsonString) throws AuthnException {
         logger.info("Unpacking request to extract credentials");
         ByteArrayInputStream stream = new ByteArrayInputStream(jsonString.getBytes());
         try (JsonReader r = Json.createReader(stream)) {

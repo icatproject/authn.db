@@ -54,32 +54,32 @@ public class DB_Authenticator {
 
 		// Extract the username/password and IP from the JSON input and store them in the class
 		Request request = new Request();
-		request.getCredentials(jsonString);
+		request.parse(jsonString);
 
 		// Perform IP address checking if required
 		ipVerifier.CheckIPs(request.getIps());
 
 		logger.debug("Login request by: " + request.getUsername());
-		logger.debug("Checking password against database");
 
-		// Check passwords
+		// Check passwords against the db
 		Passwd passwd = this.manager.find(Passwd.class, request.getUsername());
 		if (passwd == null) {
 			throw new AuthnException(HttpURLConnection.HTTP_FORBIDDEN, "The username and password do not match");
 		} else {
-			passwd.checkPasswords(request.getPassword(), passwd.getPassword());
+			passwd.checkPassword(request.getPassword(), passwd.getPassword());
 		}
 
-		logger.info(request.getUsername() + " logged in successfully" + (mechanism.isPresent() ? " by " + mechanism : ""));
+		logger.info(request.getUsername() + " logged in successfully"
+				+ (mechanism.isPresent() ? " by " + mechanism : ""));
 
 		// Format the response
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		try (JsonGenerator gen = Json.createGenerator(output)) {
+		ByteArrayOutputStream response = new ByteArrayOutputStream();
+		try (JsonGenerator gen = Json.createGenerator(response)) {
 			gen.writeStartObject().write("username", request.getUsername());
             mechanism.ifPresent(stream -> gen.write("mechanism", stream));
 			gen.writeEnd();
 		}
-		return output.toString();
+		return response.toString();
 	}
 
 	@GET
