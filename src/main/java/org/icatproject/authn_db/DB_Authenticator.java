@@ -110,7 +110,7 @@ public class DB_Authenticator {
 
 		}
 
-		logger.debug("Login request by: " + username);
+		logger.debug("Login request by: {} from {}", username, (ip != null ? ip : "?"));
 
 		if (username == null || username.isEmpty()) {
 			throw new AuthnException(HttpURLConnection.HTTP_FORBIDDEN, "username cannot be null or empty.");
